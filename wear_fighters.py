@@ -61,7 +61,7 @@ def main():
         update_all(thing_list)
 
         # Update the display
-        screen.fill((66,80,250)) # sky blue background
+        screen.fill(const.SKY_BLUE) # sky blue background
         blit_all(screen, thing_list)
         pygame.display.flip()
         time.sleep(.01)

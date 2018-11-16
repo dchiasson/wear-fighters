@@ -55,6 +55,7 @@ class Airplane(Thing):
         super(Airplane, self).__init__()
         self.image = pygame.image.load("resources/airplane_40.png")
 
+
     def update_physics(self):
         super(Airplane, self).update_physics()
         # Always point the airplane nose in the direction of travel
@@ -75,7 +76,7 @@ class Bullet(Thing):
         self.owner = owner
         
     def blit(self, screen):
-        pygame.draw.rect(screen, ((0,0,0)), (self.position, [5,5]))
+        pygame.draw.rect(screen, (const.RED), (self.position, [6,6]))
 
 class Cloud(Thing):
     CLOUD_SPEED = .5
@@ -84,3 +85,4 @@ class Cloud(Thing):
         self.image = pygame.image.load("resources/cloud_90.png")
         self.position = np.array([np.random.rand() * const.X_MAX, np.random.rand() * const.Y_MAX])
         self.velocity = rotation_matrix(np.random.rand() * 2 * np.pi).dot(np.array([0, self.CLOUD_SPEED]))
+        self.blit_order = 90
