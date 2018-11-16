@@ -25,15 +25,16 @@ def main():
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 running = False
+            # if left button is pressed before right is release, the left turn is ignored
             if event.type == pygame.KEYDOWN:
                 if event.key == pygame.K_RIGHT:
-                    airplane.lateral_force = .005
+                    airplane.lateral_force = .02
                 if event.key == pygame.K_LEFT:
-                    airplane.lateral_force = -.005
+                    airplane.lateral_force = -.02
                 if event.key == pygame.K_UP:
-                    airplane.acceleration = 1.01
+                    airplane.acceleration = .1
                 if event.key == pygame.K_DOWN:
-                    airplane.acceleration = .99
+                    airplane.acceleration = -.1
                 if event.key == pygame.K_SPACE:
                     thing_list.append(things.Bullet(airplane))
             if event.type == pygame.KEYUP:
