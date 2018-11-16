@@ -1,5 +1,6 @@
 import pygame
 import numpy as np
+import const
 
 def rotation_matrix(theta):
     c, s = np.cos(theta), np.sin(theta)
@@ -20,7 +21,7 @@ class Thing(object):
     def get_image(self):
         return self.image
 
-    def update(self):
+    def update_physics(self):
         # forward acceleration
         if self.acceleration:
             speed = np.linalg.norm(self.velocity)
@@ -43,28 +44,43 @@ class Thing(object):
         # update position
         self.position += self.velocity
 
+    def blit(self, screen):
+        screen.blit(self.get_image(), self.position)
+
+
 class Airplane(Thing):
     MIN_SPEED = .3
-    MAX_SPEED = 6
+    MAX_SPEED = 20
     def __init__(self):
         super(Airplane, self).__init__()
         self.image = pygame.image.load("resources/airplane_40.png")
 
-    def update(self):
-        super(Airplane, self).update()
+    def update_physics(self):
+        super(Airplane, self).update_physics()
         # Always point the airplane nose in the direction of travel
         self.angle = np.arctan(self.velocity[0] / self.velocity[1]) * 180.0 / np.pi + 90
         if self.velocity[1] < 0:
             self.angle += 180
 
-
     def get_image(self):
         return pygame.transform.rotate(self.image, self.angle)
 
+
 class Bullet(Thing):
-    BULLET_SPEED = 2
+    BULLET_SPEED = 6
     def __init__(self, owner):
         super(Bullet, self).__init__()
-        self.image = pygame.image.load("resources/airplane_40.png")
         self.velocity = owner.velocity * (1 + self.BULLET_SPEED / np.linalg.norm(owner.velocity))
         self.position = owner.position * 1.0 # arrays are mutable, so make a copy
+        self.owner = owner
+        
+    def blit(self, screen):
+        pygame.draw.rect(screen, ((0,0,0)), (self.position, [5,5]))
+
+class Cloud(Thing):
+    CLOUD_SPEED = .5
+    def __init__(self):
+        super(Cloud, self).__init__()
+        self.image = pygame.image.load("resources/cloud_90.png")
+        self.position = np.array([np.random.rand() * const.X_MAX, np.random.rand() * const.Y_MAX])
+        self.velocity = rotation_matrix(np.random.rand() * 2 * np.pi).dot(np.array([0, self.CLOUD_SPEED]))
