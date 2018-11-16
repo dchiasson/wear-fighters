@@ -8,11 +8,15 @@ def update_all(thing_list):
         thing.update_physics()
 
 def check_collisions(thing_list):
-    dead_things = []
+    # Check for collisions of each thing with each other thing
     for thing in thing_list:
         thing.check_walls()
         for other_thing in thing_list:
-            thing.check_collision(other_thing)
+            if thing is not other_thing:
+                if (thing.mask.overlap(other_thing.mask,
+                        (other_thing.position - thing.position).astype(int))):
+                    thing.collide_with(other_thing)
+    # Remove dead things from our update list
     for thing in thing_list:
         if not thing.is_alive:
             thing_list.remove(thing)
@@ -30,7 +34,7 @@ def main():
 
     airplane = things.Airplane()
     thing_list = [airplane]
-    for cloud in range(1):
+    for cloud in range(5):
         thing_list.append(things.Cloud())
 
     running = True

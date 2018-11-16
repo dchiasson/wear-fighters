@@ -62,11 +62,8 @@ class Thing(object):
         if self.position[1] > const.Y_MAX:
             self.velocity[1] = -self.velocity[1]
 
-    def check_collision(self, other_object):
-        if self is other_object or not other_object.is_solid:
-            return
-        if (self.mask.overlap(other_object.mask,
-                (other_object.position - self.position).astype(int))):
+    def collide_with(self, other_object):
+        if other_object.is_solid:
             self.is_alive = False
 
 
@@ -99,10 +96,12 @@ class Bullet(Thing):
         self.velocity = owner.velocity + owner_direction * self.BULLET_SPEED
         self.position = owner.position + max(owner.rect) * owner_direction
         self.owner = owner
-        print(max(owner.rect))
         
     def blit(self, screen):
         pygame.draw.rect(screen, (const.RED), (self.position, [6,6]))
+
+    def collide_with(self, other_object):
+        self.is_alive = False # even clouds can destroy bullets
 
 
 class Cloud(Thing):
@@ -115,5 +114,5 @@ class Cloud(Thing):
         self.blit_order = 90
         self.is_solid = False
 
-    def check_collision(self, other_object):
+    def collide_with(self, other_object):
         return # I'm a cloud, I don't care
