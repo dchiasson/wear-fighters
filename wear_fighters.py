@@ -6,14 +6,16 @@ import const
 def update_all(thing_list):
     for thing in thing_list:
         thing.update_physics()
-        if thing.position[0] < 0:
-            thing.velocity[0] = -thing.velocity[0]
-        if thing.position[1] < 0:
-            thing.velocity[1] = -thing.velocity[1]
-        if thing.position[0] > const.X_MAX:
-            thing.velocity[0] = -thing.velocity[0]
-        if thing.position[1] > const.Y_MAX:
-            thing.velocity[1] = -thing.velocity[1]
+
+def check_collisions(thing_list):
+    dead_things = []
+    for thing in thing_list:
+        thing.check_walls()
+        for other_thing in thing_list:
+            thing.check_collision(other_thing)
+    for thing in thing_list:
+        if not thing.is_alive:
+            thing_list.remove(thing)
 
 def blit_all(screen, thing_list):
     for thing in sorted(thing_list, key=lambda thing: thing.blit_order):
@@ -24,10 +26,11 @@ def main():
     pygame.display.set_caption("The best game ever...")
 
     screen = pygame.display.set_mode((const.X_MAX, const.Y_MAX))
+    clock = pygame.time.Clock()
 
     airplane = things.Airplane()
     thing_list = [airplane]
-    for cloud in range(5):
+    for cloud in range(1):
         thing_list.append(things.Cloud())
 
     running = True
@@ -59,12 +62,14 @@ def main():
 
         # Update object positions
         update_all(thing_list)
+        check_collisions(thing_list)
 
         # Update the display
         screen.fill(const.SKY_BLUE) # sky blue background
         blit_all(screen, thing_list)
         pygame.display.flip()
-        time.sleep(.01)
+        clock.tick(50)
+        #clock.get_time())
 
 if __name__ == "__main__":
     main()
