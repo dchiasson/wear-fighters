@@ -70,20 +70,42 @@ class Thing(object):
 class Airplane(Thing):
     MIN_SPEED = .3
     MAX_SPEED = 20
-    def __init__(self):
-        super(Airplane, self).__init__(
-                pygame.image.load("resources/airplane_40.png"))
+    IMAGE_FRONT_ANGLE = 90
+    def __init__(self, image_addr=None):
+        if image_addr:
+            super(Airplane, self).__init__(
+                    pygame.image.load(image_addr))
+        else:
+            super(Airplane, self).__init__(
+                    pygame.image.load("resources/airplane_40.png"))
 
 
     def update_physics(self):
         super(Airplane, self).update_physics()
         # Always point the airplane nose in the direction of travel
-        self.angle = np.arctan(self.velocity[0] / self.velocity[1]) * 180.0 / np.pi + 90
+        self.angle = np.arctan(self.velocity[0] / self.velocity[1]) * 180.0 / np.pi + self.IMAGE_FRONT_ANGLE
         if self.velocity[1] < 0:
             self.angle += 180
 
     def get_image(self):
         return pygame.transform.rotate(self.image, self.angle)
+
+class EnemyShip(Airplane):
+    IMAGE_FRONT_ANGLE = 180
+    MAX_SPEED = 5
+    def __init__(self):
+        super(EnemyShip, self).__init__("resources/boss_40.png")
+        self.position = np.array([np.random.rand() * const.X_MAX, np.random.rand() * const.Y_MAX])
+        self.velocity = rotation_matrix(np.random.rand() * 2 * np.pi).dot(np.array([0, np.random.rand()*self.MAX_SPEED]))
+
+    def collide_with(self, other_object):
+        if other_object.is_solid:
+            if isinstance(other_object, EnemyShip):
+                return
+            if isinstance(other_object, Bullet):
+                if isinstance(other_object.owner, EnemyShip):
+                    return
+            self.is_alive = False
 
 
 class Bullet(Thing):

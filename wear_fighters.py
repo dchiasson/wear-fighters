@@ -3,6 +3,8 @@ import things
 import time
 import const
 
+iteration = 0
+
 def update_all(thing_list):
     for thing in thing_list:
         thing.update_physics()
@@ -25,6 +27,13 @@ def blit_all(screen, thing_list):
     for thing in sorted(thing_list, key=lambda thing: thing.blit_order):
         thing.blit(screen)
 
+def update_ai(enemy_list, thing_list):
+    global iteration
+    if iteration %150 == 100:
+        for enemy in enemy_list:
+            if enemy in thing_list:
+                thing_list.append(things.Bullet(enemy))
+
 def main():
     pygame.init()
     pygame.display.set_caption("The best game ever...")
@@ -32,13 +41,24 @@ def main():
     screen = pygame.display.set_mode((const.X_MAX, const.Y_MAX))
     clock = pygame.time.Clock()
 
+    global iteration
+
+    thing_list = []
+    enemy_list = []
     airplane = things.Airplane()
-    thing_list = [airplane]
+    thing_list.append(airplane)
+    enemy = things.EnemyShip()
+    thing_list.append(enemy)
+    for _ in range(5):
+        enemy = things.EnemyShip()
+        thing_list.append(enemy)
+        enemy_list.append(enemy)
     for cloud in range(5):
         thing_list.append(things.Cloud())
 
     running = True
     while running:
+        iteration += 1
         # Get user input
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
@@ -54,6 +74,7 @@ def main():
                     airplane.acceleration += -const.PLANE_ACCELERATION
                 if event.key == pygame.K_SPACE:
                     thing_list.append(things.Bullet(airplane))
+                    thing_list.append(things.Bullet(enemy))
             if event.type == pygame.KEYUP:
                 if event.key == pygame.K_RIGHT:
                     airplane.lateral_force -= const.PLANE_TURN_RATE
@@ -63,6 +84,8 @@ def main():
                     airplane.acceleration -= const.PLANE_ACCELERATION
                 if event.key == pygame.K_DOWN:
                     airplane.acceleration -= -const.PLANE_ACCELERATION
+
+        update_ai(enemy_list, thing_list)
 
         # Update object positions
         update_all(thing_list)
