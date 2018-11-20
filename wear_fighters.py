@@ -20,7 +20,7 @@ def check_collisions(thing_list):
                     thing.collide_with(other_thing)
     # Remove dead things from our update list
     for thing in thing_list:
-        if not thing.is_alive:
+        if thing.state == things.DEAD:
             thing_list.remove(thing)
 
 def blit_all(screen, thing_list):
@@ -31,7 +31,7 @@ def update_ai(enemy_list, thing_list):
     global iteration
     if iteration %150 == 100:
         for enemy in enemy_list:
-            if enemy in thing_list:
+            if enemy.state == things.ALIVE:
                 thing_list.append(things.Bullet(enemy))
 
 def main():
@@ -73,8 +73,8 @@ def main():
                 if event.key == pygame.K_DOWN:
                     airplane.acceleration += -const.PLANE_ACCELERATION
                 if event.key == pygame.K_SPACE:
-                    thing_list.append(things.Bullet(airplane))
-                    thing_list.append(things.Bullet(enemy))
+                    if airplane.state == things.ALIVE:
+                        thing_list.append(things.Bullet(airplane))
             if event.type == pygame.KEYUP:
                 if event.key == pygame.K_RIGHT:
                     airplane.lateral_force -= const.PLANE_TURN_RATE
@@ -95,7 +95,7 @@ def main():
         screen.fill(const.SKY_BLUE) # sky blue background
         blit_all(screen, thing_list)
         pygame.display.flip()
-        clock.tick(50)
+        clock.tick(const.FRAME_RATE)
         #clock.get_time())
 
 if __name__ == "__main__":

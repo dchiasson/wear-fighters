@@ -2,6 +2,8 @@ import pygame
 import numpy as np
 import const
 
+[ALIVE, EXPLODING, DEAD] = range(3)
+
 def rotation_matrix(theta):
     c, s = np.cos(theta), np.sin(theta)
     return np.array(((c, -s), (s, c)))
@@ -15,12 +17,16 @@ class Thing(object):
         self.rect = self.image.get_rect()
         self.position = np.array([500.0, 5.0])
         self.velocity = np.array([1.0, 1.0])
-        self.angle = 0.0
+        self.angle = 0
+        self.scale = 1
         self.lateral_force = 0.0
         self.acceleration = 0.0
         self.blit_order = 50 # higher numbers are drawn after (or on top of) lower numbers
-        self.is_alive = True
+        self.state = ALIVE
         self.is_solid = True
+
+    def __str__(self):
+        return "{} object at position {}, velocity {}".format(type(self), self.position, self.velocity)
 
     def get_image(self):
         return self.image
@@ -64,13 +70,14 @@ class Thing(object):
 
     def collide_with(self, other_object):
         if other_object.is_solid:
-            self.is_alive = False
+            self.state = DEAD
 
 
 class Airplane(Thing):
     MIN_SPEED = .3
     MAX_SPEED = 20
     IMAGE_FRONT_ANGLE = 90
+    EXPLOSION_LEN = const.FRAME_RATE * 2 # two seconds
     def __init__(self, image_addr=None):
         if image_addr:
             super(Airplane, self).__init__(
@@ -82,13 +89,37 @@ class Airplane(Thing):
 
     def update_physics(self):
         super(Airplane, self).update_physics()
+
+    def get_image(self):
+        if self.state == EXPLODING:
+            self.explosion_time += 1
+            if (self.explosion_time > self.EXPLOSION_LEN):
+                self.state = DEAD
+            if (self.explosion_time % (const.FRAME_RATE // 8) == 1):
+                self.angle = np.random.rand() * 360
+                self.scale = 2.0 * (1.0 - float(self.explosion_time) / self.EXPLOSION_LEN)
+            return pygame.transform.rotozoom(self.image, self.angle, self.scale)
+
         # Always point the airplane nose in the direction of travel
+        if (self.velocity[1] == 0):
+            self.velocity[1] = 1e-8
         self.angle = np.arctan(self.velocity[0] / self.velocity[1]) * 180.0 / np.pi + self.IMAGE_FRONT_ANGLE
         if self.velocity[1] < 0:
             self.angle += 180
-
-    def get_image(self):
         return pygame.transform.rotate(self.image, self.angle)
+
+    def trigger_explosion(self):
+        self.state = EXPLODING
+        self.is_solid = False
+        self.image = pygame.image.load("resources/explode_50.png")
+        self.velocity = [0,0]
+        self.explosion_time = 0
+
+    def collide_with(self, other_object):
+        if self.state in [EXPLODING, DEAD]:
+            return
+        if other_object.is_solid:
+            self.trigger_explosion()
 
 class EnemyShip(Airplane):
     IMAGE_FRONT_ANGLE = 180
@@ -99,13 +130,15 @@ class EnemyShip(Airplane):
         self.velocity = rotation_matrix(np.random.rand() * 2 * np.pi).dot(np.array([0, np.random.rand()*self.MAX_SPEED]))
 
     def collide_with(self, other_object):
+        if self.state in [EXPLODING, DEAD]:
+            return
         if other_object.is_solid:
             if isinstance(other_object, EnemyShip):
                 return
             if isinstance(other_object, Bullet):
                 if isinstance(other_object.owner, EnemyShip):
                     return
-            self.is_alive = False
+            self.trigger_explosion()
 
 
 class Bullet(Thing):
@@ -123,7 +156,7 @@ class Bullet(Thing):
         pygame.draw.rect(screen, (const.RED), (self.position, [6,6]))
 
     def collide_with(self, other_object):
-        self.is_alive = False # even clouds can destroy bullets
+        self.state = DEAD # even clouds can destroy bullets
 
 
 class Cloud(Thing):
