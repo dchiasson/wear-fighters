@@ -45,11 +45,11 @@ def main():
 
     thing_list = []
     enemy_list = []
-    airplane = things.Airplane()
+    airplane = things.PlayerAirplane()
     thing_list.append(airplane)
     enemy = things.EnemyShip()
     thing_list.append(enemy)
-    for _ in range(5):
+    for _ in range(20):
         enemy = things.EnemyShip()
         thing_list.append(enemy)
         enemy_list.append(enemy)

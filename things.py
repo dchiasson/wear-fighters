@@ -8,6 +8,16 @@ def rotation_matrix(theta):
     c, s = np.cos(theta), np.sin(theta)
     return np.array(((c, -s), (s, c)))
 
+class HealthBar(object):
+    HIGHT = 60
+    WIDTH = 10
+    def __init__(self, x, y):
+        self.position = np.array([x, y])
+
+    def blit(self, screen, health):
+        pygame.draw.rect(screen, (const.WHITE), (self.position, [self.WIDTH, self.HIGHT]))
+        pygame.draw.rect(screen, (const.RED), (self.position, [self.WIDTH, self.HIGHT*health]))
+
 class Thing(object):
     MAX_SPEED = 40
     MIN_SPEED = 0
@@ -34,13 +44,13 @@ class Thing(object):
     def update_physics(self):
         # forward acceleration
         if self.acceleration:
-            speed = np.linalg.norm(self.velocity)
+            speed = max(np.linalg.norm(self.velocity), 1e-8)
             unit_direction = self.velocity / speed
             if (self.acceleration / speed > -1):
                 self.velocity = self.velocity + self.acceleration * unit_direction
 
             # Limit max and min speeds
-            speed = np.linalg.norm(self.velocity)
+            speed = max(np.linalg.norm(self.velocity), 1e-8)
             unit_direction = self.velocity / speed
             if speed < self.MIN_SPEED:
                 self.velocity = unit_direction * self.MIN_SPEED
@@ -112,7 +122,7 @@ class Airplane(Thing):
         self.state = EXPLODING
         self.is_solid = False
         self.image = pygame.image.load("resources/explode_50.png")
-        self.velocity = [0,0]
+        self.velocity = np.array([0,0])
         self.explosion_time = 0
 
     def collide_with(self, other_object):
@@ -121,6 +131,25 @@ class Airplane(Thing):
         if other_object.is_solid:
             self.trigger_explosion()
 
+class PlayerAirplane(Airplane):
+    HEALTH_MAX = 5
+    def __init__(self):
+        super(PlayerAirplane, self).__init__("resources/airplane_40.png")
+        self.health = self.HEALTH_MAX
+        self.health_bar = HealthBar(30,30)
+
+    def collide_with(self, other_object):
+        if self.state in [EXPLODING, DEAD]:
+            return
+        if other_object.is_solid:
+            self.health -= 1
+            if self.health <= 0:
+                self.trigger_explosion()
+
+    def blit(self, screen):
+        super(PlayerAirplane, self).blit(screen)
+        self.health_bar.blit(screen, float(self.health) / self.HEALTH_MAX)
+
 class EnemyShip(Airplane):
     IMAGE_FRONT_ANGLE = 180
     MAX_SPEED = 5
@@ -128,6 +157,7 @@ class EnemyShip(Airplane):
         super(EnemyShip, self).__init__("resources/boss_40.png")
         self.position = np.array([np.random.rand() * const.X_MAX, np.random.rand() * const.Y_MAX])
         self.velocity = rotation_matrix(np.random.rand() * 2 * np.pi).dot(np.array([0, np.random.rand()*self.MAX_SPEED]))
+        self.health = 0
 
     def collide_with(self, other_object):
         if self.state in [EXPLODING, DEAD]:
@@ -138,7 +168,9 @@ class EnemyShip(Airplane):
             if isinstance(other_object, Bullet):
                 if isinstance(other_object.owner, EnemyShip):
                     return
-            self.trigger_explosion()
+            self.health -= 1
+            if self.health <= 0:
+                self.trigger_explosion()
 
 
 class Bullet(Thing):
@@ -154,6 +186,12 @@ class Bullet(Thing):
         
     def blit(self, screen):
         pygame.draw.rect(screen, (const.RED), (self.position, [6,6]))
+
+    def check_walls(self):
+        """Default wall collision behavior is to bounce"""
+        if self.position[0] < 0 or self.position[1] < 0 or \
+                self.position[0] > const.X_MAX or self.position[1] > const.Y_MAX:
+            self.state = DEAD
 
     def collide_with(self, other_object):
         self.state = DEAD # even clouds can destroy bullets
