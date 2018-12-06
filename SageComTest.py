@@ -54,7 +54,11 @@ def send_sensor_request(port, time):
     sensors_data_stream = threading.Timer(timer_period, send_sensor_request, [port, time])
     sensors_data_stream.start()
 
-
+class DataPacket():
+    def __init__(self,R,P,Y):
+        self.R = R
+        self.P = P
+        self.Y = Y
 def sensor_listener(data_queue):
     while True:
         sensors_data = get_sensors_data()
@@ -71,7 +75,7 @@ def sensor_listener(data_queue):
         Y=math.asin(2*(Q4*Q1-Q2*Q2))/3.14159*180
         #print("R:  %f,  P:  %f,  Y:  %f" % (R, P, Y))
 
-        data_queue.put(Y, False)
+        data_queue.put(DataPacket(R,P,Y), False)
 
 
 feedback_status = False

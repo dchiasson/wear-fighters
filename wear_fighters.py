@@ -2,6 +2,9 @@ import pygame
 import things
 import time
 import const
+import SageComTest
+import threading
+import queue
 
 iteration = 0
 
@@ -38,6 +41,11 @@ def main():
     pygame.init()
     pygame.display.set_caption("The best game ever...")
 
+    data_queue = queue.Queue()
+    t = threading.Thread(target=SageComTest.sensor_listener, args=(data_queue,))
+    t.start()
+
+
     screen = pygame.display.set_mode((const.X_MAX, const.Y_MAX))
     clock = pygame.time.Clock()
 
@@ -60,30 +68,50 @@ def main():
     while running:
         iteration += 1
         # Get user input
+        #print(data_queue.get().R)
+
+        # for event in pygame.event.get():
+        #     if event.type == pygame.QUIT:
+        #         running = False
+        #     if event.type == pygame.KEYDOWN:
+        #         if event.key == pygame.K_RIGHT:
+        #             airplane.lateral_force += const.PLANE_TURN_RATE
+        #         if event.key == pygame.K_LEFT:
+        #             airplane.lateral_force += -const.PLANE_TURN_RATE
+        #         if event.key == pygame.K_UP:
+        #             airplane.acceleration += const.PLANE_ACCELERATION
+        #         if event.key == pygame.K_DOWN:
+        #             airplane.acceleration += -const.PLANE_ACCELERATION
+        #         if event.key == pygame.K_SPACE:
+        #             if airplane.state == things.ALIVE:
+        #                 thing_list.append(things.Bullet(airplane))
+        #     if event.type == pygame.KEYUP:
+        #         if event.key == pygame.K_RIGHT:
+        #             airplane.lateral_force -= const.PLANE_TURN_RATE
+        #         if event.key == pygame.K_LEFT:
+        #             airplane.lateral_force -= -const.PLANE_TURN_RATE
+        #         if event.key == pygame.K_UP:
+        #             airplane.acceleration -= const.PLANE_ACCELERATION
+        #         if event.key == pygame.K_DOWN:
+        #             airplane.acceleration -= -const.PLANE_ACCELERATION
+
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 running = False
-            if event.type == pygame.KEYDOWN:
-                if event.key == pygame.K_RIGHT:
-                    airplane.lateral_force += const.PLANE_TURN_RATE
-                if event.key == pygame.K_LEFT:
-                    airplane.lateral_force += -const.PLANE_TURN_RATE
-                if event.key == pygame.K_UP:
-                    airplane.acceleration += const.PLANE_ACCELERATION
-                if event.key == pygame.K_DOWN:
-                    airplane.acceleration += -const.PLANE_ACCELERATION
-                if event.key == pygame.K_SPACE:
-                    if airplane.state == things.ALIVE:
-                        thing_list.append(things.Bullet(airplane))
-            if event.type == pygame.KEYUP:
-                if event.key == pygame.K_RIGHT:
-                    airplane.lateral_force -= const.PLANE_TURN_RATE
-                if event.key == pygame.K_LEFT:
-                    airplane.lateral_force -= -const.PLANE_TURN_RATE
-                if event.key == pygame.K_UP:
-                    airplane.acceleration -= const.PLANE_ACCELERATION
-                if event.key == pygame.K_DOWN:
-                    airplane.acceleration -= -const.PLANE_ACCELERATION
+
+        if data_queue.get().Y>=5:
+            airplane.lateral_force = const.PLANE_TURN_RATE
+        if data_queue.get().Y<-5:
+            airplane.lateral_force = -const.PLANE_TURN_RATE
+        if data_queue.get().R>=5:
+            airplane.acceleration = const.PLANE_ACCELERATION
+        if data_queue.get().R<-5:
+            airplane.acceleration = -const.PLANE_ACCELERATION
+
+        # if event.key == pygame.K_SPACE:
+        #     if airplane.state == things.ALIVE:
+        #         thing_list.append(things.Bullet(airplane))
+
 
         update_ai(enemy_list, thing_list)
 
