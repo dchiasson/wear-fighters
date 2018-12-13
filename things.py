@@ -64,6 +64,11 @@ class Thing(object):
         # update position
         self.position += self.velocity
 
+    def set_angle(self, degree):
+        rad = np.deg2rad(degree)
+        speed = max(np.linalg.norm(self.velocity), 1e-8)
+        self.velocity = speed * np.array([np.cos(rad), np.sin(rad)])
+        
     def blit(self, screen):
         screen.blit(self.get_image(), self.position)
 

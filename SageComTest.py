@@ -72,7 +72,10 @@ def sensor_listener(data_queue):
         # print("Q1:  %f,  Q2:  %f,  Q3:  %f,Q4:  %f" %(Q1, Q2, Q3, Q4))
         R=math.atan2(2*(Q4*Q3+Q1*Q2), 1-2*Q3*Q3-2*Q1*Q1)/3.14159*180
         P=math.atan2(2*(Q4*Q2+Q1*Q3), 1-2*Q1*Q1-2*Q2*Q2)/3.14159*180
-        Y=math.asin(2*(Q4*Q1-Q2*Q2))/3.14159*180
+        try:
+            Y=math.asin(2*(Q4*Q1-Q2*Q2))/3.14159*180
+        except ValueError:
+            continue
         #print("R:  %f,  P:  %f,  Y:  %f" % (R, P, Y))
 
         data_queue.put(DataPacket(R,P,Y), False)

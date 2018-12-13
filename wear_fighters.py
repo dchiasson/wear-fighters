@@ -43,6 +43,7 @@ def main():
 
     data_queue = queue.Queue()
     t = threading.Thread(target=SageComTest.sensor_listener, args=(data_queue,))
+    t.dameon = True
     t.start()
 
 
@@ -57,7 +58,7 @@ def main():
     thing_list.append(airplane)
     enemy = things.EnemyShip()
     thing_list.append(enemy)
-    for _ in range(20):
+    for _ in range(0):
         enemy = things.EnemyShip()
         thing_list.append(enemy)
         enemy_list.append(enemy)
@@ -99,14 +100,19 @@ def main():
             if event.type == pygame.QUIT:
                 running = False
 
-        if data_queue.get().Y>=5:
-            airplane.lateral_force = const.PLANE_TURN_RATE
-        if data_queue.get().Y<-5:
-            airplane.lateral_force = -const.PLANE_TURN_RATE
-        if data_queue.get().R>=5:
-            airplane.acceleration = const.PLANE_ACCELERATION
-        if data_queue.get().R<-5:
-            airplane.acceleration = -const.PLANE_ACCELERATION
+        data_point = data_queue.get()
+
+        airplane.set_angle(data_point.Y)
+        print(data_point.Y)
+        
+        #if data_queue.get().Y>=5:
+        #    airplane.lateral_force = const.PLANE_TURN_RATE
+        #if data_queue.get().Y<-5:
+        #    airplane.lateral_force = -const.PLANE_TURN_RATE
+        #if data_queue.get().R>=5:
+        #    airplane.acceleration = const.PLANE_ACCELERATION
+        #if data_queue.get().R<-5:
+        #    airplane.acceleration = -const.PLANE_ACCELERATION
 
         # if event.key == pygame.K_SPACE:
         #     if airplane.state == things.ALIVE:
