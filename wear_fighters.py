@@ -103,7 +103,12 @@ def main():
         data_point = data_queue.get()
 
         airplane.set_angle(data_point.Y)
-        print(data_point.Y)
+        if data_queue.get().R>=10:
+            airplane.acceleration = const.PLANE_ACCELERATION
+        if data_queue.get().R<-5:
+            airplane.acceleration = -10*const.PLANE_ACCELERATION
+
+        #print(data_point.Y)
         
         #if data_queue.get().Y>=5:
         #    airplane.lateral_force = const.PLANE_TURN_RATE
