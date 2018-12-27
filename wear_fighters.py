@@ -2,7 +2,7 @@ import pygame
 import things
 import time
 import const
-import SageComTest
+import sensor_data
 import threading
 import queue
 
@@ -42,7 +42,7 @@ def main():
     pygame.display.set_caption("The best game ever...")
 
     data_queue = queue.Queue()
-    t = threading.Thread(target=SageComTest.sensor_listener, args=(data_queue,))
+    t = threading.Thread(target=sensor_data.sensor_listener, args=(data_queue,))
     t.dameon = True
     t.start()
 
