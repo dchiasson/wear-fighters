@@ -268,11 +268,13 @@ def sensor_listener(data_queue):
             P_total_4 = P_total_4 + P_bias_4
             Y_total_4 = Y_total_4 + Y_bias_4
             #data_queue.put(DataPacket(R_total_2, P_total_2, Y_total_2), False)
-            print("4：R:  %f,  P:  %f,  Y:  %f" % (R_total_4, P_total_4, Y_total_4))
+            #print("4：R:  %f,  P:  %f,  Y:  %f" % (R_total_4, P_total_4, Y_total_4))
 
-        data=[DataPacket(R_total_1, P_total_1, Y_total_1),DataPacket(R_total_2, P_total_2, Y_total_2),
-              DataPacket(R_total_3, P_total_3, Y_total_3),DataPacket(R_total_4, P_total_4, Y_total_4)]
-        data_queue.put(data,False)
+        if calib_count > calib_iter_times:
+            print("bias：1:  %f,  2:  %f,  3:  %f,   4:  %f" % (R_bias_1,R_bias_2, R_bias_3, R_bias_4))
+            data=[DataPacket(R_bias_1, P_total_1, 360-Y_total_1),DataPacket(R_bias_2, P_total_2, 360-Y_total_2),
+                  DataPacket(R_bias_3, P_total_3, 360-Y_total_3),DataPacket(R_bias_4, P_total_4, 360-Y_total_4)]
+            data_queue.put(data,False)
 
 feedback_status = False
 udp_port = 4010

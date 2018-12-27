@@ -113,9 +113,10 @@ def main():
                     continue
 
                 player.set_angle(data_point.Y * 4.0)
-                if data_point.R > -10:
-                    if iteration % 10 == 0:
+                if data_point.R > 0.3:
+                    if iteration % 5 == 0:
                         thing_list.append(things.Bullet(player))
+
 
             update_ai(enemy_list, thing_list)
 
@@ -140,6 +141,7 @@ def main():
     screen.fill(const.SKY_BLUE) # sky blue background
     screen.blit(text, ((const.X_MAX - text.get_width()) // 2, (const.Y_MAX - text.get_width()) // 2))
     pygame.display.flip()
+    time.sleep(1000)
 
 if __name__ == "__main__":
     main()
