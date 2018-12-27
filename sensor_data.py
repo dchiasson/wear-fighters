@@ -25,6 +25,16 @@ R_total_2 = 0
 P_total_2 = 0
 Y_total_2 = 0
 
+#sensor3
+R_total_3 = 0
+P_total_3 = 0
+Y_total_3 = 0
+
+#sensor4
+R_total_4 = 0
+P_total_4 = 0
+Y_total_4 = 0
+
 
 def sage_listener():
     while True:
@@ -93,6 +103,8 @@ def sensor_listener(data_queue):
         # user algorithum start here
         global R_total_1, P_total_1, Y_total_1
         global R_total_2, P_total_2, Y_total_2
+        global R_total_3, P_total_3, Y_total_3
+        global R_total_4, P_total_4, Y_total_4
 
         
         calib_count=calib_count+1
@@ -115,7 +127,7 @@ def sensor_listener(data_queue):
         # except ValueError:
         #     continue
         # print("raw")
-        # print("R:  %f,  P:  %f,  Y:  %f" % (R, P, Y))
+        # print("R:  %f,  P:  %f,  Y:  %f" % (R, P, Y))d
 
         #with bias_quater function
         if calib_count <=calib_iter_times:
@@ -144,10 +156,9 @@ def sensor_listener(data_queue):
             R_total_1 = R_total_1+R_bias_1
             P_total_1 = P_total_1+P_bias_1
             Y_total_1 = Y_total_1+Y_bias_1
-            data_queue.put([DataPacket(R_total_1,P_total_1,Y_total_1)] * 2, False)
-            #print("R:  %f,  P:  %f,  Y:  %f" % (R_total_1,P_total_1,Y_total_1))
+            #data_queue.put([DataPacket(R_total_1,P_total_1,Y_total_1)] * 2, False)
+            #print("1：R:  %f,  P:  %f,  Y:  %f" % (R_total_1,P_total_1,Y_total_1))
 
-        continue
         # sensor 2
         Q1_2 = sensors_data[1]['Quaternion1']
         Q2_2 = sensors_data[1]['Quaternion2']
@@ -183,7 +194,85 @@ def sensor_listener(data_queue):
             P_total_2 = P_total_2 + P_bias_2
             Y_total_2 = Y_total_2 + Y_bias_2
             #data_queue.put(DataPacket(R_total_2, P_total_2, Y_total_2), False)
-            print("R:  %f,  P:  %f,  Y:  %f" % (R_total_2, P_total_2, Y_total_2))
+            #print("2：R:  %f,  P:  %f,  Y:  %f" % (R_total_2, P_total_2, Y_total_2))
+
+        # sensor 3
+        Q1_3 = sensors_data[2]['Quaternion1']
+        Q2_3 = sensors_data[2]['Quaternion2']
+        Q3_3 = sensors_data[2]['Quaternion3']
+        Q4_3 = sensors_data[2]['Quaternion4']
+        # print("Q1:  %f,  Q2:  %f,  Q3:  %f,Q4:  %f" %(Q1, Q2, Q3, Q4))
+
+        # with bias_quater function
+        if calib_count <= calib_iter_times:
+            Q1_ex_3 = Q1_3
+            Q2_ex_3 = Q2_3
+            Q3_ex_3 = Q3_3
+            Q4_ex_3 = Q4_3
+            # print("Q1_cal:  %f,  Q2_cal:  %f,  Q3_cal:  %f,Q4_cal:  %f" %(Q1_cal, Q2_cal, Q3_cal, Q4_cal))
+        else:
+            Q1_bias_3, Q2_bias_3, Q3_bias_3, Q4_bias_3 = bias_quater(Q1_3, Q2_3, Q3_3, Q4_3, Q1_ex_3, Q2_ex_3, Q3_ex_3, Q4_ex_3)
+            # print("Q1:  %f,  Q2:  %f,  Q3:  %f,Q4:  %f" %(Q1, Q2, Q3, Q4))
+            R_bias_3 = math.atan2(2 * (Q4_bias_3 * Q2_bias_3 + Q1_bias_3 * Q3_bias_3),
+                                1 - 2 * Q1_bias_3 * Q1_bias_3 - 2 * Q2_bias_3 * Q2_bias_3) / 3.14159 * 180
+            P_bias_3 = math.atan2(2 * (Q4_bias_3 * Q3_bias_3 + Q1_bias_3 * Q2_bias_3),
+                                1 - 2 * Q3_bias_3 * Q3_bias_3 - 2 * Q1_bias_3 * Q1_bias_3) / 3.14159 * 180
+            try:
+                Y_bias_3 = math.asin(2 * (Q4_bias_3 * Q1_bias_3 - Q2_bias_3 * Q2_bias_3)) / 3.14159 * 180
+            except ValueError:
+                continue
+
+            Q1_ex_3 = Q1_3
+            Q2_ex_3 = Q2_3
+            Q3_ex_3 = Q3_3
+            Q4_ex_3 = Q4_3
+
+            R_total_3 = R_total_3 + R_bias_3
+            P_total_3 = P_total_3 + P_bias_3
+            Y_total_3 = Y_total_3 + Y_bias_3
+            #data_queue.put(DataPacket(R_total_2, P_total_2, Y_total_2), False)
+            #print("3：R:  %f,  P:  %f,  Y:  %f" % (R_total_3, P_total_3, Y_total_3))
+
+        # sensor 4
+        Q1_4 = sensors_data[3]['Quaternion1']
+        Q2_4 = sensors_data[3]['Quaternion2']
+        Q3_4 = sensors_data[3]['Quaternion3']
+        Q4_4 = sensors_data[3]['Quaternion4']
+        # print("Q1:  %f,  Q2:  %f,  Q3:  %f,Q4:  %f" %(Q1, Q2, Q3, Q4))
+
+        # with bias_quater function
+        if calib_count <= calib_iter_times:
+            Q1_ex_4 = Q1_4
+            Q2_ex_4 = Q2_4
+            Q3_ex_4 = Q3_4
+            Q4_ex_4 = Q4_4
+            # print("Q1_cal:  %f,  Q2_cal:  %f,  Q3_cal:  %f,Q4_cal:  %f" %(Q1_cal, Q2_cal, Q3_cal, Q4_cal))
+        else:
+            Q1_bias_4, Q2_bias_4, Q3_bias_4, Q4_bias_4 = bias_quater(Q1_4, Q2_4, Q3_4, Q4_4, Q1_ex_4, Q2_ex_4, Q3_ex_4, Q4_ex_4)
+            # print("Q1:  %f,  Q2:  %f,  Q3:  %f,Q4:  %f" %(Q1, Q2, Q3, Q4))
+            R_bias_4 = math.atan2(2 * (Q4_bias_4 * Q2_bias_4 + Q1_bias_4 * Q3_bias_4),
+                                1 - 2 * Q1_bias_4 * Q1_bias_4 - 2 * Q2_bias_4 * Q2_bias_4) / 3.14159 * 180
+            P_bias_4 = math.atan2(2 * (Q4_bias_4 * Q3_bias_4 + Q1_bias_2 * Q2_bias_4),
+                                1 - 2 * Q3_bias_4 * Q3_bias_4 - 2 * Q1_bias_4 * Q1_bias_4) / 3.14159 * 180
+            try:
+                Y_bias_4 = math.asin(2 * (Q4_bias_4 * Q1_bias_4 - Q2_bias_4 * Q2_bias_4)) / 3.14159 * 180
+            except ValueError:
+                continue
+
+            Q1_ex_4 = Q1_4
+            Q2_ex_4 = Q2_4
+            Q3_ex_4 = Q3_4
+            Q4_ex_4 = Q4_4
+
+            R_total_4 = R_total_4 + R_bias_4
+            P_total_4 = P_total_4 + P_bias_4
+            Y_total_4 = Y_total_4 + Y_bias_4
+            #data_queue.put(DataPacket(R_total_2, P_total_2, Y_total_2), False)
+            print("4：R:  %f,  P:  %f,  Y:  %f" % (R_total_4, P_total_4, Y_total_4))
+
+        data=[DataPacket(R_total_1, P_total_1, Y_total_1),DataPacket(R_total_2, P_total_2, Y_total_2),
+              DataPacket(R_total_3, P_total_3, Y_total_3),DataPacket(R_total_4, P_total_4, Y_total_4)]
+        data_queue.put(data,False)
 
 feedback_status = False
 udp_port = 4010
