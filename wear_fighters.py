@@ -32,10 +32,22 @@ def blit_all(screen, thing_list):
 
 def update_ai(enemy_list, thing_list):
     global iteration
-    if iteration %150 == 100:
+    if iteration %50 == 10:
         for enemy in enemy_list:
             if enemy.state == things.ALIVE:
                 thing_list.append(things.Bullet(enemy))
+
+end_string = "Game Over"
+def check_game_end(player_list, enemy_list):
+    for enemy in enemy_list:
+        if enemy.state == things.ALIVE:
+            return False
+    if sum([player.state == things.ALIVE for player in player_list]) == 1:
+        for player_index, player in enumerate(player_list):
+            if player.state == things.ALIVE:
+                global end_string
+                end_string = "Player {} wins!".format(player_index)
+                return True
 
 def main():
     pygame.init()
@@ -65,7 +77,7 @@ def main():
         enemy_list = []
         player_list = []
 
-        for _ in range(1):
+        for _ in range(0):
             enemy = things.EnemyShip()
             thing_list.append(enemy)
             enemy_list.append(enemy)
@@ -97,13 +109,13 @@ def main():
                     player_list.append(new_player)
                     thing_list.append(new_player)
                 player = player_list[player_index]
+                if not player.state == things.ALIVE:
+                    continue
 
                 player.set_angle(data_point.Y * 4.0)
-                #if data_point.R>=10:
-                #    player.acceleration = const.PLANE_ACCELERATION
-                #if data_point.R<-5:
-                #    player.acceleration = -10*const.PLANE_ACCELERATION
-
+                if data_point.R > -10:
+                    if iteration % 10 == 0:
+                        thing_list.append(things.Bullet(player))
 
             update_ai(enemy_list, thing_list)
 
@@ -118,7 +130,12 @@ def main():
             clock.tick(const.FRAME_RATE)
             #clock.get_time())
 
-    text = font.render("Game Over", True, (128, 128, 0))
+            if check_game_end(player_list, enemy_list):
+                running = False
+                do_restart = False
+
+    global end_string
+    text = font.render(end_string, True, (128, 128, 0))
 
     screen.fill(const.SKY_BLUE) # sky blue background
     screen.blit(text, ((const.X_MAX - text.get_width()) // 2, (const.Y_MAX - text.get_width()) // 2))

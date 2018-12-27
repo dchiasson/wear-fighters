@@ -143,7 +143,8 @@ class PlayerAirplane(Airplane):
         self.health = self.HEALTH_MAX
         self.player_index = player_index
         self.health_bar = HealthBar(30+ 20 * player_index,30)
-        self.velocity = 10
+        self.position = np.array([50.0 + 200.0 * player_index, 5.0 + 200 * player_index])
+        self.velocity = np.array([4.0, 4.0])
 
     def collide_with(self, other_object):
         if self.state in [EXPLODING, DEAD]:
@@ -159,10 +160,10 @@ class PlayerAirplane(Airplane):
             self.position[0] = 5
         if self.position[1] < 0:
             self.position[1] = 5
-        if self.position[0] > const.X_MAX:
-            self.position[0] = const.X_MAX - 5
-        if self.position[1] > const.Y_MAX:
-            self.position[1] = const.Y_MAX - 5
+        if self.position[0] > const.X_MAX - 30:
+            self.position[0] = const.X_MAX - 35
+        if self.position[1] > const.Y_MAX - 10:
+            self.position[1] = const.Y_MAX - 15
 
     def blit(self, screen):
         super(PlayerAirplane, self).blit(screen)
