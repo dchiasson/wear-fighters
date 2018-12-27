@@ -138,10 +138,12 @@ class Airplane(Thing):
 
 class PlayerAirplane(Airplane):
     HEALTH_MAX = 5
-    def __init__(self):
+    def __init__(self, player_index):
         super(PlayerAirplane, self).__init__("resources/airplane_40.png")
         self.health = self.HEALTH_MAX
-        self.health_bar = HealthBar(30,30)
+        self.player_index = player_index
+        self.health_bar = HealthBar(30+ 20 * player_index,30)
+        self.velocity = 10
 
     def collide_with(self, other_object):
         if self.state in [EXPLODING, DEAD]:
@@ -150,6 +152,17 @@ class PlayerAirplane(Airplane):
             self.health -= 1
             if self.health <= 0:
                 self.trigger_explosion()
+                
+    def check_walls(self):
+        """Just keep the players on the screen"""
+        if self.position[0] < 0:
+            self.position[0] = 5
+        if self.position[1] < 0:
+            self.position[1] = 5
+        if self.position[0] > const.X_MAX:
+            self.position[0] = const.X_MAX - 5
+        if self.position[1] > const.Y_MAX:
+            self.position[1] = const.Y_MAX - 5
 
     def blit(self, screen):
         super(PlayerAirplane, self).blit(screen)

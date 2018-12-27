@@ -38,7 +38,7 @@ def send_feedback(index, _type, time):
     def feedback_url_request(index, _type, time):
         parameters = {'index':index, 'type':_type, 'time':time}
         resp = requests.get(url_feedback_trigger, params=parameters, timeout=1)
-        print(resp)
+        # print(resp)
         return resp
 
     send_feedback_thread = threading.Thread(
@@ -64,6 +64,7 @@ def send_sensor_request(port, time):
     resp = requests.get(url_sensors_request, params=parameters, timeout=1)
     print(resp.status_code)
     sensors_data_stream = threading.Timer(timer_period, send_sensor_request, [port, time])
+    sensors_data_stream.daemon = True
     sensors_data_stream.start()
 
 
@@ -85,17 +86,16 @@ class DataPacket():
 
 
 def sensor_listener(data_queue):
+    calib_count = 0
+    calib_iter_times=10
     while True:
         sensors_data = get_sensors_data()
         # user algorithum start here
         global R_total_1, P_total_1, Y_total_1
         global R_total_2, P_total_2, Y_total_2
-        global calib_count
 
-        calib_iter_times=10
+        
         calib_count=calib_count+1
-        print(calib_count)
-
 
         # sensor 1
         Q1_1=sensors_data[0]['Quaternion1']
@@ -144,9 +144,10 @@ def sensor_listener(data_queue):
             R_total_1 = R_total_1+R_bias_1
             P_total_1 = P_total_1+P_bias_1
             Y_total_1 = Y_total_1+Y_bias_1
-            data_queue.put(DataPacket(R_total_1,P_total_1,Y_total_1), False)
-            print("R:  %f,  P:  %f,  Y:  %f" % (R_total_1,P_total_1,Y_total_1))
+            data_queue.put([DataPacket(R_total_1,P_total_1,Y_total_1)] * 2, False)
+            #print("R:  %f,  P:  %f,  Y:  %f" % (R_total_1,P_total_1,Y_total_1))
 
+        continue
         # sensor 2
         Q1_2 = sensors_data[1]['Quaternion1']
         Q2_2 = sensors_data[1]['Quaternion2']

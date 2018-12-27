@@ -43,99 +43,86 @@ def main():
 
     data_queue = queue.Queue()
     t = threading.Thread(target=sensor_data.sensor_listener, args=(data_queue,))
-    t.dameon = True
+    t.daemon = True
     t.start()
-
 
     screen = pygame.display.set_mode((const.X_MAX, const.Y_MAX))
     clock = pygame.time.Clock()
 
+    font = pygame.font.SysFont("comicsansms", 50)
+    text = font.render("Waiting for sensor data...", True, (128, 128, 0))
+
+    screen.fill(const.SKY_BLUE) # sky blue background
+    screen.blit(text, ((const.X_MAX - text.get_width()) // 2, (const.Y_MAX - text.get_width()) // 2))
+    pygame.display.flip()
+    
     global iteration
 
-    thing_list = []
-    enemy_list = []
-    airplane = things.PlayerAirplane()
-    thing_list.append(airplane)
-    enemy = things.EnemyShip()
-    thing_list.append(enemy)
-    for _ in range(0):
-        enemy = things.EnemyShip()
-        thing_list.append(enemy)
-        enemy_list.append(enemy)
-    for cloud in range(5):
-        thing_list.append(things.Cloud())
+    do_restart = True
+    while do_restart:
 
-    running = True
-    while running:
-        iteration += 1
-        # Get user input
-        #print(data_queue.get().R)
+        thing_list = []
+        enemy_list = []
+        player_list = []
 
-        # for event in pygame.event.get():
-        #     if event.type == pygame.QUIT:
-        #         running = False
-        #     if event.type == pygame.KEYDOWN:
-        #         if event.key == pygame.K_RIGHT:
-        #             airplane.lateral_force += const.PLANE_TURN_RATE
-        #         if event.key == pygame.K_LEFT:
-        #             airplane.lateral_force += -const.PLANE_TURN_RATE
-        #         if event.key == pygame.K_UP:
-        #             airplane.acceleration += const.PLANE_ACCELERATION
-        #         if event.key == pygame.K_DOWN:
-        #             airplane.acceleration += -const.PLANE_ACCELERATION
-        #         if event.key == pygame.K_SPACE:
-        #             if airplane.state == things.ALIVE:
-        #                 thing_list.append(things.Bullet(airplane))
-        #     if event.type == pygame.KEYUP:
-        #         if event.key == pygame.K_RIGHT:
-        #             airplane.lateral_force -= const.PLANE_TURN_RATE
-        #         if event.key == pygame.K_LEFT:
-        #             airplane.lateral_force -= -const.PLANE_TURN_RATE
-        #         if event.key == pygame.K_UP:
-        #             airplane.acceleration -= const.PLANE_ACCELERATION
-        #         if event.key == pygame.K_DOWN:
-        #             airplane.acceleration -= -const.PLANE_ACCELERATION
-
-        for event in pygame.event.get():
-            if event.type == pygame.QUIT:
-                running = False
-
-        data_point = data_queue.get()
-
-        airplane.set_angle(data_point.Y)
-        if data_queue.get().R>=10:
-            airplane.acceleration = const.PLANE_ACCELERATION
-        if data_queue.get().R<-5:
-            airplane.acceleration = -10*const.PLANE_ACCELERATION
-
-        #print(data_point.Y)
-        
-        #if data_queue.get().Y>=5:
-        #    airplane.lateral_force = const.PLANE_TURN_RATE
-        #if data_queue.get().Y<-5:
-        #    airplane.lateral_force = -const.PLANE_TURN_RATE
-        #if data_queue.get().R>=5:
-        #    airplane.acceleration = const.PLANE_ACCELERATION
-        #if data_queue.get().R<-5:
-        #    airplane.acceleration = -const.PLANE_ACCELERATION
-
-        # if event.key == pygame.K_SPACE:
-        #     if airplane.state == things.ALIVE:
-        #         thing_list.append(things.Bullet(airplane))
+        for _ in range(1):
+            enemy = things.EnemyShip()
+            thing_list.append(enemy)
+            enemy_list.append(enemy)
+        for cloud in range(5):
+            thing_list.append(things.Cloud())
 
 
-        update_ai(enemy_list, thing_list)
 
-        # Update object positions
-        update_all(thing_list)
-        check_collisions(thing_list)
+        running = True
+        while running:
+            iteration += 1
 
-        # Update the display
-        screen.fill(const.SKY_BLUE) # sky blue background
-        blit_all(screen, thing_list)
-        pygame.display.flip()
-        clock.tick(const.FRAME_RATE)
-        #clock.get_time())
+            for event in pygame.event.get():
+                if event.type == pygame.QUIT:
+                    running = False
+                    do_restart = False
+                elif event.type == pygame.KEYDOWN:
+                    if event.key in [pygame.K_q, pygame.K_END, pygame.K_DELETE, pygame.K_ESCAPE]:
+                        running = False
+                        do_restart = False
+                    elif event.key in [pygame.K_SPACE, pygame.K_r]:
+                        running = False
+
+            data_point = data_queue.get()
+
+            for player_index, data_point in enumerate(data_queue.get()):
+                if player_index >= len(player_list):
+                    new_player = things.PlayerAirplane(player_index)
+                    player_list.append(new_player)
+                    thing_list.append(new_player)
+                player = player_list[player_index]
+
+                player.set_angle(data_point.Y * 4.0)
+                #if data_point.R>=10:
+                #    player.acceleration = const.PLANE_ACCELERATION
+                #if data_point.R<-5:
+                #    player.acceleration = -10*const.PLANE_ACCELERATION
+
+
+            update_ai(enemy_list, thing_list)
+
+            # Update object positions
+            update_all(thing_list)
+            check_collisions(thing_list)
+
+            # Update the display
+            screen.fill(const.SKY_BLUE) # sky blue background
+            blit_all(screen, thing_list)
+            pygame.display.flip()
+            clock.tick(const.FRAME_RATE)
+            #clock.get_time())
+
+    text = font.render("Game Over", True, (128, 128, 0))
+
+    screen.fill(const.SKY_BLUE) # sky blue background
+    screen.blit(text, ((const.X_MAX - text.get_width()) // 2, (const.Y_MAX - text.get_width()) // 2))
+    pygame.display.flip()
 
 if __name__ == "__main__":
     main()
